@@ -4,6 +4,9 @@ export const ASPECT_RATIOS = ['1:1', '16:9', '9:16'] as const
 export const VIDEO_DURATIONS = [5, 10] as const
 
 export const models = {
+  'qwen3.8-max': { kind: 'text', via: 'dashscope', endpoint: 'qwen3.8-max' },
+  'qwen3.7-plus': { kind: 'text', via: 'dashscope', endpoint: 'qwen3.7-plus' },
+  'qwen3.8-flash': { kind: 'text', via: 'dashscope', endpoint: 'qwen3.8-flash' },
   'gpt-5-mini': { kind: 'text', via: 'openrouter', endpoint: 'openai/gpt-5-mini' },
   'claude-sonnet-4.6': { kind: 'text', via: 'openrouter', endpoint: 'anthropic/claude-sonnet-4.6' },
   'flux-schnell': { kind: 'images', via: 'fal', endpoint: 'fal-ai/flux/schnell', aspectRatios: ASPECT_RATIOS },

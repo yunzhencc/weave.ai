@@ -1,5 +1,5 @@
 import { chat, EventType, type StreamChunk } from '@tanstack/ai'
-import type { TextModel } from '../models.ts'
+import { models, type TextModel } from '../models.ts'
 import { createAdapter } from './create-adapter.ts'
 
 // Returns domain events; HTTP/SSE encoding belongs to the route handler.
@@ -10,7 +10,8 @@ export function streamText(input: { model: TextModel; prompt: string }, signal: 
   signal.addEventListener('abort', abort, { once: true })
   if (signal.aborted) abort()
   const timer = setTimeout(abort, 120_000)
-  const stream = chat({ adapter, messages: [{ role: 'user', content: input.prompt }], modelOptions: { maxCompletionTokens: 4096 }, abortController: controller, debug: false })
+  const modelOptions = models[input.model].via === 'dashscope' ? { max_tokens: 4096 } : { maxCompletionTokens: 4096 }
+  const stream = chat({ adapter, messages: [{ role: 'user', content: input.prompt }], modelOptions, abortController: controller, debug: false })
   async function* safeStream(): AsyncGenerator<StreamChunk> {
     try {
       for await (const chunk of stream) {
