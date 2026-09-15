@@ -1,6 +1,10 @@
 import { ModelError } from '../errors.ts'
 
-const keyNames = { fal: 'FAL_KEY', openrouter: 'OPENROUTER_API_KEY', dashscope: 'DASHSCOPE_API_KEY' } as const
+const keyNames = {
+  fal: 'FAL_KEY',
+  openrouter: 'OPENROUTER_API_KEY',
+  dashscope: 'DASHSCOPE_API_KEY'
+} as const
 
 export function resolveKey(via: keyof typeof keyNames) {
   const name = keyNames[via]
