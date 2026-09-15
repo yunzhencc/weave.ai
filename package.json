@@ -10,9 +10,9 @@
     "node": ">=24"
   },
   "scripts": {
+    "dev": "vite dev --port 3000",
     "test": "node --test src/server/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview"
@@ -56,6 +56,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
+    "code-inspector-plugin": "^2.0.9",
     "playwright": "1.63.0",
     "typescript": "6.0.3",
     "vite": "8.3.0",
