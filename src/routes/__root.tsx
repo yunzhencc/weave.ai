@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import appCss from '../styles.css?url'
@@ -27,6 +27,14 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
+  notFoundComponent: () => (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
+      <h1 className="text-2xl font-semibold">404 · 页面不存在</h1>
+      <Link to="/" className="text-primary underline underline-offset-4">
+        返回首页
+      </Link>
+    </main>
+  ),
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
