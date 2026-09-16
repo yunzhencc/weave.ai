@@ -1,7 +1,23 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
+
+const credentials = new AsyncLocalStorage<string>()
+
+// TanStack's fal adapters configure a process-global client. Scope credentials
+// across every submit/status/result await and override them at the transport.
+export function withFalCredential<T>(apiKey: string, run: () => T): T {
+  return credentials.run(apiKey, run)
+}
+
 export const falFetch: typeof fetch = async (url, init) => {
-  const submission = (init?.method || 'GET').toUpperCase() === 'POST'
+  const apiKey = credentials.getStore()
+  if (!apiKey) throw new Error('Missing fal request credential context')
+  const request = url instanceof Request ? url : undefined
+  const headers = new Headers(init?.headers ?? request?.headers)
+  headers.set('authorization', `Key ${apiKey}`)
+  const submission = (init?.method ?? request?.method ?? 'GET').toUpperCase() === 'POST'
+  const signal = init?.signal ?? request?.signal
   try {
-    const response = await fetch(url, { ...init, signal: AbortSignal.any([AbortSignal.timeout(30_000), ...(init?.signal ? [init.signal] : [])]) })
+    const response = await fetch(url, { ...init, headers, redirect: 'error', signal: AbortSignal.any([AbortSignal.timeout(30_000), ...(signal ? [signal] : [])]) })
     if (submission && !response.ok) {
       await response.body?.cancel()
       throw new Error('Fal submission outcome unknown')

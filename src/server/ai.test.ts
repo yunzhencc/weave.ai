@@ -4,6 +4,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test, vi } from 'vitest'
 import { handleAiRequest } from './ai.ts'
+
+// Protocol tests mock transport only; network policy has separate DNS/socket tests.
+vi.mock('../models/server/provider-network.ts', async (original) => ({
+  ...await original<typeof import('../models/server/provider-network.ts')>(),
+  providerFetch: () => globalThis.fetch,
+}))
 import { parseGeneration } from '../models/generation.ts'
 import { reserveGeneration, readGeneration, updateGeneration } from '../models/server/db/generated-assets.ts'
 import { generate } from '../studio/server/generation-service.ts'
@@ -33,7 +39,13 @@ test('model integration validates inputs, protects paid calls and keeps durable 
     const headers = { Authorization: 'Bearer test-secret' }
     const models = await handleAiRequest(new Request('http://localhost/api/ai/models', { headers }), 'models')
     assert.equal(models.status, 200)
-    assert.doesNotMatch(await models.text(), /test-secret/)
+    const catalog = await models.json() as { id: string; vendor: string; via: string }[]
+    assert.doesNotMatch(JSON.stringify(catalog), /test-secret/)
+    assert.ok(catalog.every((model) => typeof model.vendor === 'string' && model.vendor.length > 0))
+    assert.deepEqual(catalog.filter((model) => model.vendor === 'OpenAI').map(({ id, via }) => ({ id, via })), [
+      { id: 'gpt-5-mini', via: 'openrouter' },
+      { id: 'gpt-image-2.5', via: 'fal' },
+    ])
     const bad = await handleAiRequest(new Request('http://localhost/api/ai/images', { method: 'POST', headers, body: '{}' }), 'images')
     assert.equal(bad.status, 400)
     const missing = await handleAiRequest(new Request('http://localhost/api/ai/jobs/missing', { headers }), 'jobs/missing')

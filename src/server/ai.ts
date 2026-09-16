@@ -1,11 +1,10 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { toServerSentEventsResponse } from '@tanstack/ai'
-import { models } from '../models/models.ts'
-import { parseGeneration, parseText } from '../models/generation.ts'
+import { manageModels, publicModels } from '../models/server/management.ts'
+import { parseText } from '../models/generation.ts'
 import { ModelError } from '../models/errors.ts'
-import { isConfigured } from '../models/server/api-keys.ts'
 import { streamText } from '../models/server/llm-client.ts'
-import { generate, poll } from '../studio/server/generation-service.ts'
+import { generateRequest, poll } from '../studio/server/generation-service.ts'
 
 class ApiError extends Error {
   status: number
@@ -22,8 +21,8 @@ function authorize(request: Request) {
   if (!timingSafeEqual(hash(request.headers.get('authorization') || ''), hash(`Bearer ${token}`))) throw new ApiError(401, 'Unauthorized')
 }
 
-async function body(request: Request) {
-  if (!request.body) throw new ApiError(400, 'Missing JSON body')
+async function readBody(request: Request, limit = 64 * 1024) {
+  if (!request.body) throw new ApiError(400, 'Missing request body')
   const reader = request.body.getReader()
   const chunks: Uint8Array[] = []
   let length = 0
@@ -32,34 +31,48 @@ async function body(request: Request) {
       const { value, done } = await reader.read()
       if (done) break
       length += value.byteLength
-      if (length > 64 * 1024) {
+      if (length > limit) {
         await reader.cancel()
-        throw new ApiError(413, 'Request exceeds 64 KiB')
+        throw new ApiError(413, `Request exceeds ${limit} bytes`)
       }
       chunks.push(value)
     }
-    try { return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown } catch { throw new ApiError(400, 'Invalid JSON') }
+    return Buffer.concat(chunks)
   } finally { reader.releaseLock() }
+}
+
+async function body(request: Request, optional = false) {
+  if (optional && !request.body) return undefined
+  const bytes = await readBody(request)
+  if (optional && bytes.length === 0) return undefined
+  try { return JSON.parse(bytes.toString('utf8')) as unknown } catch { throw new ApiError(400, 'Invalid JSON') }
 }
 
 const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } })
 
 export async function handleAiRequest(request: Request, path: string): Promise<Response> {
   try {
+    if (path.startsWith('admin/')) {
+      return json(await manageModels(path.slice(6), request.method, request.method === 'POST' ? await body(request, true) : undefined))
+    }
     authorize(request)
     if (path === 'models' && request.method === 'GET') {
-      return json(Object.entries(models).map(([id, model]) => ({ id, ...model, configured: isConfigured(model.via) })))
+      return json(publicModels())
     }
     if (path === 'text' && request.method === 'POST') {
-      const response = toServerSentEventsResponse(streamText(parseText(await body(request)), request.signal))
+      const response = toServerSentEventsResponse(streamText(parseText(await body(request), true), request.signal))
       response.headers.set('Cache-Control', 'no-store')
       return response
     }
     if ((path === 'images' || path === 'videos') && request.method === 'POST') {
-      const record = await generate(parseGeneration(path, await body(request)))
-      return json(record, record.status === 'completed' ? 200 : 202)
+      const record = await generateRequest(path, await body(request))
+      const { execution: _execution, ...publicRecord } = record
+      return json(publicRecord, record.status === 'completed' ? 200 : 202)
     }
-    if (/^jobs\/[^/]+$/.test(path) && request.method === 'GET') return json(await poll(path.slice(5)))
+    if (/^jobs\/[^/]+$/.test(path) && request.method === 'GET') {
+      const { execution: _execution, ...record } = await poll(path.slice(5))
+      return json(record)
+    }
     return json({ error: 'Not found or unsupported method' }, 404)
   } catch (error) {
     if (error instanceof ModelError) {

@@ -1,9 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { ImageWorkbench } from '#/studio/ui/image-workbench'
 
 export const Route = createFileRoute('/image')({
-  component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>) => ({ generation: typeof search.generation === 'string' ? search.generation : undefined }),
+  component: ImageWorkbench,
 })
-
-function RouteComponent() {
-  return <div>图片工作台</div>
-}

@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
-import type { Generation, GenerationRecord } from '../../generation.ts'
+import { generationIdentity, type Generation, type GenerationRecord } from '../../generation.ts'
 import { ModelError } from '../../errors.ts'
 
 function database<T>(run: (db: DatabaseSync) => T): T {
@@ -24,7 +24,7 @@ export function reserveGeneration(input: Generation) {
     const request = JSON.stringify(input)
     const inserted = db.prepare('INSERT OR IGNORE INTO generations VALUES (?, ?, ?)').run(input.id, request, JSON.stringify(record))
     const saved = db.prepare('SELECT request, record FROM generations WHERE id = ?').get(input.id)!
-    if (saved.request !== request) throw new ModelError('conflict', 'This id belongs to a different request')
+    if (generationIdentity(JSON.parse(saved.record as string) as GenerationRecord) !== generationIdentity(input)) throw new ModelError('conflict', 'This id belongs to a different request')
     return { created: inserted.changes === 1, record: JSON.parse(saved.record as string) as GenerationRecord }
   })
 }

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ImageRouteImport } from './routes/image'
+import { Route as SettingsModelsRouteImport } from './routes/settings.models'
 import { Route as ApiAiSplatRouteImport } from './routes/api.ai.$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ImageRoute = ImageRouteImport.update({
   path: '/image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsModelsRoute = SettingsModelsRouteImport.update({
+  id: '/settings/models',
+  path: '/settings/models',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiSplatRoute = ApiAiSplatRouteImport.update({
   id: '/api/ai/$',
   path: '/api/ai/$',
@@ -32,30 +38,34 @@ const ApiAiSplatRoute = ApiAiSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/image': typeof ImageRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/api/ai/$': typeof ApiAiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/image': typeof ImageRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/api/ai/$': typeof ApiAiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/image': typeof ImageRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/api/ai/$': typeof ApiAiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/image' | '/api/ai/$'
+  fullPaths: '/' | '/image' | '/settings/models' | '/api/ai/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/image' | '/api/ai/$'
-  id: '__root__' | '/' | '/image' | '/api/ai/$'
+  to: '/' | '/image' | '/settings/models' | '/api/ai/$'
+  id: '__root__' | '/' | '/image' | '/settings/models' | '/api/ai/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ImageRoute: typeof ImageRoute
+  SettingsModelsRoute: typeof SettingsModelsRoute
   ApiAiSplatRoute: typeof ApiAiSplatRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/models': {
+      id: '/settings/models'
+      path: '/settings/models'
+      fullPath: '/settings/models'
+      preLoaderRoute: typeof SettingsModelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/$': {
       id: '/api/ai/$'
       path: '/api/ai/$'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ImageRoute: ImageRoute,
+  SettingsModelsRoute: SettingsModelsRoute,
   ApiAiSplatRoute: ApiAiSplatRoute,
 }
 export const routeTree = rootRouteImport

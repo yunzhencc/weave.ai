@@ -1,8 +1,20 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { getCatalog, saveProvider } from '../models/server/db/catalog.ts'
 import { test, vi } from 'vitest'
 import { handleAiRequest } from './ai.ts'
 
+// Protocol tests mock transport only; network policy has separate DNS/socket tests.
+vi.mock('../models/server/provider-network.ts', async (original) => ({
+  ...await original<typeof import('../models/server/provider-network.ts')>(),
+  providerFetch: () => globalThis.fetch,
+}))
+
 test('official Qwen models use DashScope chat completions and protect credentials', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'qwen-text-'))
+  vi.stubEnv('AI_DATA_DIR', dir)
   const modelIds = ['qwen3.8-max', 'qwen3.7-plus', 'qwen3.8-flash']
   const requests: Request[] = []
   let fail = false
@@ -26,7 +38,13 @@ test('official Qwen models use DashScope chat completions and protect credential
     assert.equal(requests.length, 0)
     const unconfigured = await (await call('models')).json()
     for (const id of modelIds) {
-      assert.deepEqual(unconfigured.find((model: { id: string }) => model.id === id), { id, kind: 'text', via: 'dashscope', endpoint: id, configured: false })
+      const model = unconfigured.find((model: { id: string }) => model.id === id)
+      assert.equal(model.kind, 'text')
+      assert.equal(model.vendor, 'Alibaba')
+      assert.equal(model.via, 'dashscope')
+      assert.equal(model.endpoint, id)
+      assert.equal(model.configured, false)
+      assert.equal(model.available, false)
     }
     assert.equal((await call('text', modelIds[0])).status, 503)
     assert.equal(requests.length, 0)
@@ -58,7 +76,8 @@ test('official Qwen models use DashScope chat completions and protect credential
       assert.deepEqual(body.messages, [{ role: 'user', content: 'Hello' }])
     }
 
-    vi.stubEnv('DASHSCOPE_BASE_URL', 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1')
+    const provider = getCatalog().providers.find((p) => p.id === 'dashscope')!
+    saveProvider({ id: provider.id, revision: provider.revision, name: provider.name, type: provider.type, baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1', enabled: true, confirmCredentialReuse: true })
     assert.match(await (await call('text', modelIds[0])).text(), /Hello Qwen/)
     assert.equal(requests.at(-1)!.url, 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions')
     fail = true
@@ -70,5 +89,6 @@ test('official Qwen models use DashScope chat completions and protect credential
   } finally {
     fetchMock.mockRestore()
     vi.unstubAllEnvs()
+    rmSync(dir, { recursive: true, force: true })
   }
 })

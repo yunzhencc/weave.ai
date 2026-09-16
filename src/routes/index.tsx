@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { ThemeToggle } from '#/components/motion/theme-toggle';
 import { Button } from '#/components/ui/button';
 
@@ -9,7 +9,9 @@ function App() {
     <main>
       Hello World
 
-      <Button>测试</Button>
+      <Button render={<Link to="/image" search={{ generation: undefined }} />}>图片生成</Button>
+
+      <Button render={<Link to="/settings/models" />}>模型设置</Button>
 
       <ThemeToggle
         variant="circle-blur"
