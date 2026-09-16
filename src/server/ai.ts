@@ -1,5 +1,6 @@
-import { createHash, timingSafeEqual } from 'node:crypto'
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 import { toServerSentEventsResponse } from '@tanstack/ai'
+import { createStorage } from '../platform/server/storage.ts'
 import { manageModels, publicModels } from '../models/server/management.ts'
 import { parseText } from '../models/generation.ts'
 import { ModelError } from '../models/errors.ts'
@@ -56,6 +57,24 @@ export async function handleAiRequest(request: Request, path: string): Promise<R
       return json(await manageModels(path.slice(6), request.method, request.method === 'POST' ? await body(request, true) : undefined))
     }
     authorize(request)
+    if (path === 'files' && request.method === 'POST') {
+      const bytes = await readBody(request, 10 * 1024 * 1024)
+      if (!bytes.length) throw new ApiError(400, 'Empty file')
+      const key = `uploads/${randomUUID()}`
+      await createStorage().put(key, bytes)
+      return json({ key, downloadPath: `/api/ai/files/${key.slice(8)}` }, 201)
+    }
+    if (/^files\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(path) && request.method === 'GET') {
+      const disk = createStorage()
+      const key = `uploads/${path.slice(6)}`
+      if (!await disk.exists(key)) throw new ApiError(404, 'File not found')
+      return new Response(new Uint8Array(await disk.getBytes(key)), { headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment',
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'no-store',
+      } })
+    }
     if (path === 'models' && request.method === 'GET') {
       return json(publicModels())
     }

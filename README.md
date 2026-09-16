@@ -14,7 +14,7 @@ DASHSCOPE_API_KEY=填写百炼API密钥
 DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 ```
 
-`AI_API_TOKEN` 用于保护现有生成和查询接口；配置管理入口不使用此令牌。它与百炼密钥不同。仅测试 Qwen 时，可留空 `OPENROUTER_API_KEY`、`FAL_KEY`。
+`AI_API_TOKEN` 用于保护现有生成、查询和文件接口；配置管理入口不使用此令牌。它与百炼密钥不同。仅测试 Qwen 时，可留空 `OPENROUTER_API_KEY`、`FAL_KEY`。
 
 默认地址属于北京地域。首次初始化前，其他地域或业务空间请覆盖 `DASHSCOPE_BASE_URL`，例如北京业务空间专属地址 `https://<WorkspaceId>.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`。API Key 必须与地址所在地域一致，模型也需在该地域对账号开放。
 
@@ -89,6 +89,10 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
 自定义渠道默认仅允许公网 HTTPS，禁止携带密钥重定向。若确需本机模型服务，由部署配置精确允许地址，例如 `MODEL_ALLOWED_HOSTS=localhost:11434`；此设置允许对应本地 HTTP／私网连接，页面不能自行解除网络限制。接口、凭据和发现边界详见[模型接入](docs/model-integration.md)。
 
 配置测试使用临时 SQLite、模拟供应商或本地测试 HTTP 服务，覆盖凭据轮换、revision 冲突、导入、地址策略和历史任务幂等；仍需分别报告浏览器验证与真实供应商调用结果，不能由测试通过推断生产账号可用。
+
+## 文件存储
+
+使用 FlyDrive，默认保存到本地 `.data/uploads`，可配置 S3 兼容服务。上传、下载接口和部署配置见[文件存储说明](docs/storage.md)。
 
 ## 图片工作台
 

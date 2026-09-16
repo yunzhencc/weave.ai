@@ -16,3 +16,4 @@ allowBuilds:
   esbuild: true
   lightningcss: true
   node-pty: true
+  workerd: false

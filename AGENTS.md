@@ -41,6 +41,7 @@ src/
   models/       模型目录、请求校验、供应商适配及现有任务存储
   stills/       图片请求构造与生成
   studio/       工作台业务、生成编排、视频提交与查询
+  platform/     文件存储等服务端基础设施
   server/       当前 AI HTTP 接口处理与集成测试
 docs/           架构、接入和任务生命周期说明
 ```
@@ -69,6 +70,7 @@ docs/           架构、接入和任务生命周期说明
 | 组件、页面文案、主题样式、状态或交互 | [前端规范](docs/frontend.md) |
 | 模型、供应商、请求参数、密钥或 AI 接口 | [模型接入](docs/model-integration.md) |
 | 任务状态、幂等、重试、超时、持久化或恢复 | [生成任务生命周期](docs/generation-lifecycle.md) |
+| 文件上传、下载、存储驱动或云存储配置 | [文件存储](docs/storage.md) |
 | 本地启动和 Qwen 调用示例 | [README](README.md) |
 | 代码审查、PR 处理或合并 | [代码审查与 PR 处理](docs/code-review.md) |
 

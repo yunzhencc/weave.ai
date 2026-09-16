@@ -51,7 +51,7 @@
 
 | 变量 | 用途 |
 | --- | --- |
-| `AI_API_TOKEN` | 现有模型查询、生成与任务接口的共享访问令牌；配置管理接口不使用此令牌 |
+| `AI_API_TOKEN` | 现有模型查询、生成、任务与文件接口的共享访问令牌；配置管理接口不使用此令牌 |
 | `DASHSCOPE_API_KEY` | Qwen 官方文本和图片共用密钥 |
 | `DASHSCOPE_BASE_URL` | 首次初始化 DashScope 渠道地址，之后在配置页面修改；默认 `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | `OPENROUTER_API_KEY` | OpenRouter 文本密钥 |

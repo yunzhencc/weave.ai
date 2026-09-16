@@ -2,7 +2,7 @@
 
 ## 当前定位
 
-本项目采用按业务领域组织的全栈应用结构，借鉴 OpenStory 的领域划分与前后端边界。当前实现是 TanStack Start + React 页面、Node.js HTTP 服务、TanStack AI 模型调用、SQLite 模型配置和任务记录；没有引入 OpenStory 的 Cloudflare Workflows、团队权限、计费系统。
+本项目采用按业务领域组织的全栈应用结构，借鉴 OpenStory 的领域划分与前后端边界。当前实现是 TanStack Start + React 页面、Node.js HTTP 服务、TanStack AI 模型调用、SQLite 模型配置和任务记录；没有引入 OpenStory 的 Cloudflare Workflows、团队权限、计费系统；文件存储使用 FlyDrive，支持本地和 S3 兼容配置。
 
 这里只描述当前代码与后续放置规则，不把建议目录当作已实现功能。开发命令和常驻约束见 [AGENTS.md](../AGENTS.md)，模型和任务细节分别见 [模型接入](model-integration.md)、[生成任务生命周期](generation-lifecycle.md)。
 
@@ -22,6 +22,7 @@
 | `src/models/server/` | 配置管理、加密凭据、候选发现与网络边界、文本适配器和事件流、fal 请求保护；`db/` 保存模型配置和任务 SQL |
 | `src/stills/` | 纯图片参数构造；其 `server/` 执行 fal SDK / 百炼 HTTP 调用并归一化结果 |
 | `src/studio/` | 纯视频参数构造；其 `server/` 编排生成、提交和查询视频任务 |
+| `src/platform/server/` | FlyDrive 文件存储配置，详见[文件存储](storage.md) |
 | `src/server/` | [AI HTTP 处理](../src/server/ai.ts)及现有服务端集成测试 |
 | `src/styles.css` | 全局主题变量与基础样式 |
 
@@ -58,7 +59,7 @@ routes/api.ai.$.ts
 
 生成服务不依赖 HTTP。后续工作台、Agent 或其他服务端入口可以复用它，不必绕回本机 HTTP。浏览器必须通过服务端入口调用，不能直接导入该服务。
 
-原有生成和查询 API 使用共享 Bearer 令牌，不能将其打包进前端。配置页面 `/settings/models` 使用 `/api/ai/admin/*`，在该令牌检查前路由到 `models/server/management.ts`；配置入口与图片工作台 RPC 不要求登录或应用令牌，部署范围限定为可信环境，本版本没有用户或多租户隔离。图片工作台复用生成服务，不将 HTTP 令牌注入浏览器。
+原有生成、查询和文件 API 使用共享 Bearer 令牌，不能将其打包进前端。配置页面 `/settings/models` 使用 `/api/ai/admin/*`，在该令牌检查前路由到 `models/server/management.ts`；配置入口与图片工作台 RPC 不要求登录或应用令牌，部署范围限定为可信环境，本版本没有用户或多租户隔离。图片工作台复用生成服务，不将 HTTP 令牌注入浏览器。
 
 模型配置和任务共用 `${AI_DATA_DIR}/generations.sqlite`，通过 Node `node:sqlite` 访问；配置采用事务内版本化迁移和一次性初始化，不使用 Drizzle 运行时迁移。凭据密文在数据库中，主密钥由部署环境提供，浏览器只接收安全 DTO。
 
@@ -72,7 +73,7 @@ routes/api.ai.$.ts
 
 目前 `Generation`、任务校验和生成记录存储位于 `models`，这是现有归属。按职责它们更接近 `studio` 的任务生命周期；涉及相关重构时再一起调整类型、存储、调用方和测试，不维护两份实现，也不把迁移写成已完成。
 
-当前视频能力只由工作台使用，暂留 `studio/server/`。出现第二个业务调用方时，再评估提取 `motion/`。认证、存储等基础设施有真实共享需求后，再引入 `platform/`；不预建空目录或只有一个实现的接口层。
+当前视频能力只由工作台使用，暂留 `studio/server/`。出现第二个业务调用方时，再评估提取 `motion/`。存储基础设施放在 `platform/server/`；其他基础设施在有实际需求时再增加，不预建空目录或重复接口。
 
 ## 依赖约束
 

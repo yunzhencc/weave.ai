@@ -9,9 +9,9 @@ function App() {
     <main>
       Hello World
 
-      <Button render={<Link to="/image" search={{ generation: undefined }} />}>图片生成</Button>
+      <Button nativeButton={false} render={<Link to="/image" search={{ generation: undefined }} />}>图片生成</Button>
 
-      <Button render={<Link to="/settings/models" />}>模型设置</Button>
+      <Button nativeButton={false} render={<Link to="/settings/models" />}>模型设置</Button>
 
       <ThemeToggle
         variant="circle-blur"

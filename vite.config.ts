@@ -14,6 +14,7 @@ const config = defineConfig({
       bundler: 'vite',
       lang: 'zh',
       editor: 'code',
+      hideConsole: true,
     }),
     devtools(),
     tailwindcss(),
