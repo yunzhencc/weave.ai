@@ -55,9 +55,11 @@ export function parseGeneration(kind: 'images' | 'videos', value: unknown, selec
   if (typeof input.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.id))
     throw new ModelError('invalid_input', 'id must be a UUID v4');
   const aspectRatio = input.aspectRatio ?? '16:9';
+  // eslint-disable-next-line unicorn/prefer-includes -- aspectRatio is unknown until this membership check validates it.
   if (!model.aspectRatios?.some(value => value === aspectRatio))
     throw new ModelError('invalid_input', 'Invalid aspectRatio');
   const duration = input.duration ?? 5;
+  // eslint-disable-next-line unicorn/prefer-includes -- duration is unknown until this membership check validates it.
   if (model.kind === 'videos' && !model.durations?.some(value => value === duration))
     throw new ModelError('invalid_input', 'Invalid duration (5 or 10 seconds)');
   const references = input.referenceImages === undefined ? [] : input.referenceImages;
@@ -67,8 +69,12 @@ export function parseGeneration(kind: 'images' | 'videos', value: unknown, selec
     if (typeof value !== 'string')
       throw new ModelError('invalid_input', 'Invalid reference image URL');
     let url: URL;
-    try { url = new URL(value); }
-    catch { throw new ModelError('invalid_input', 'Invalid reference image URL'); }
+    try {
+      url = new URL(value);
+    }
+    catch {
+      throw new ModelError('invalid_input', 'Invalid reference image URL');
+    }
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
       throw new ModelError('invalid_input', 'Reference images must use HTTP(S) URLs without credentials');
     return url.href;

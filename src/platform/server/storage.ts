@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import process from 'node:process';
 import { Disk } from 'flydrive';
 import { FSDriver } from 'flydrive/drivers/fs';
 import { S3Driver } from 'flydrive/drivers/s3';

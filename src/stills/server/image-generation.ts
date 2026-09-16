@@ -1,5 +1,6 @@
 import type { ImageGenerationResult } from '@tanstack/ai';
 import type { Generation } from '../../models/generation.ts';
+import process from 'node:process';
 import { generateImage } from '@tanstack/ai';
 import { falImage } from '@tanstack/ai-fal';
 import { z } from 'zod';

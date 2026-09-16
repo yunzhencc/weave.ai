@@ -5,14 +5,21 @@ import { pollStudioVideoJob, submitStudioVideoJob } from '../../studio/server/st
 import { parseGeneration } from '../generation.ts';
 import { falFetch } from './fal-deadline-fetch.ts';
 
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 it('isolates credentials through concurrent image, video submission and video polling awaits', async () => {
   vi.stubEnv('FAL_KEY', 'account-alpha');
   let markStarted!: () => void;
   let releaseStatus!: () => void;
-  const started = new Promise<void>((resolve) => { markStarted = resolve; });
-  const released = new Promise<void>((resolve) => { releaseStatus = resolve; });
+  const started = new Promise<void>((resolve) => {
+    markStarted = resolve;
+  });
+  const released = new Promise<void>((resolve) => {
+    releaseStatus = resolve;
+  });
   const requests: string[] = [];
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const request = new Request(input, init);
@@ -25,7 +32,10 @@ it('isolates credentials through concurrent image, video submission and video po
     if (request.method === 'POST')
       return Response.json({ request_id: `${job}-job`, status: 'IN_QUEUE' });
     if (request.url.includes('/status')) {
-      if (job === 'alpha') { markStarted(); await released; }
+      if (job === 'alpha') {
+        markStarted();
+        await released;
+      }
       return Response.json({ status: 'COMPLETED' });
     }
     return Response.json(job === 'alpha' ? { video: { url: 'https://output.example/video.mp4' } } : { images: [{ url: 'https://output.example/image.png' }] });

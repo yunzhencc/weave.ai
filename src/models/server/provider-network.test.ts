@@ -7,7 +7,11 @@ import { providerFetch, validateProviderUrl } from './provider-network.ts';
 const { nativeRequest } = vi.hoisted(() => ({ nativeRequest: vi.fn() }));
 vi.mock('node:https', () => ({ request: nativeRequest }));
 vi.mock('node:dns/promises', () => ({ lookup: vi.fn() }));
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); nativeRequest.mockReset(); });
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+  nativeRequest.mockReset();
+});
 it('blocks private, mapped, link-local, metadata, malformed and non-HTTPS targets', async () => {
   for (const url of ['https://127.0.0.1', 'https://10.0.0.1', 'https://169.254.169.254', 'https://[::1]', 'https://[::ffff:127.0.0.1]', 'https://[fd00::1]', 'http://example.com', 'https://key:secret@example.com', 'https://example.com/#secret']) {
     await expect(validateProviderUrl(url)).rejects.toThrow('网络访问策略');
@@ -32,7 +36,11 @@ it('checks official origins too and pins the validated DNS address without resol
     const pinned = vi.fn();
     options.lookup('openrouter.ai', { all: true }, pinned);
     expect(pinned).toHaveBeenCalledWith(null, [{ address: '93.184.216.34', family: 4 }]);
-    const outgoing = new Writable({ write(_chunk, _encoding, done) { done(); } });
+    const outgoing = new Writable({
+      write(_chunk, _encoding, done) {
+        done();
+      },
+    });
     outgoing.on('finish', () => {
       const incoming = Object.assign(new PassThrough(), { statusCode: 200, headers: { 'content-encoding': 'gzip' } });
       callback(incoming);
@@ -51,7 +59,11 @@ it('checks official origins too and pins the validated DNS address without resol
 it('rejects redirects without making another credential-bearing request', async () => {
   vi.mocked(lookup).mockResolvedValue([{ address: '93.184.216.34', family: 4 }] as never);
   nativeRequest.mockImplementation((_url, _options, callback) => {
-    const outgoing = new Writable({ write(_chunk, _encoding, done) { done(); } });
+    const outgoing = new Writable({
+      write(_chunk, _encoding, done) {
+        done();
+      },
+    });
     outgoing.on('finish', () => callback(Object.assign(new PassThrough(), { statusCode: 302, headers: { location: 'https://other.example' } })));
     return outgoing;
   });

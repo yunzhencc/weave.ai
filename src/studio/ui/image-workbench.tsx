@@ -26,8 +26,8 @@ export function ImageWorkbench() {
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
-  const inFlight = useRef(false);
-  const activeId = useRef('');
+  const inFlightRef = useRef(false);
+  const activeIdRef = useRef('');
   const { generation } = useSearch({ from: '/image' });
   const navigate = useNavigate();
   const routes = models.flatMap(model => model.bindings.filter(binding => binding.available).map(binding => ({ model, binding })));
@@ -55,12 +55,18 @@ export function ImageWorkbench() {
     catch { setError('模型目录加载失败，请刷新重试。'); }
     finally { setLoading(false); }
   }
-  useEffect(() => { void loadModels(); }, []);
-  useEffect(() => { editor?.setEditable(!busy); }, [editor, busy]);
+  useEffect(() => {
+    void loadModels();
+  }, []);
+  useEffect(() => {
+    editor?.setEditable(!busy);
+  }, [editor, busy]);
   const supportedRatios = ratios.join(',');
   useEffect(() => {
     if (ratios.length && !ratios.includes(ratio))
+      // eslint-disable-next-line react/set-state-in-effect -- correct an invalid ratio after the selected binding changes.
       setRatio(ratios[0]);
+  // eslint-disable-next-line react/exhaustive-deps -- supportedRatios captures every ratio value without a new array dependency each render.
   }, [bindingId, supportedRatios, ratio]);
 
   async function checkTask(id: string) {
@@ -70,18 +76,18 @@ export function ImageWorkbench() {
       const response = await readImage({ data: { id } });
       if (!response.ok)
         throw new Error(response.error);
-      if (activeId.current === id)
+      if (activeIdRef.current === id)
         setTask(response.data);
     }
     catch {
-      if (activeId.current === id)
+      if (activeIdRef.current === id)
         setError('暂时无法读取任务，请保留任务 ID，稍后检查；不会重新提交生成。');
     }
     finally { setChecking(false); }
   }
   useEffect(() => {
-    if (generation && activeId.current !== generation) {
-      activeId.current = generation;
+    if (generation && activeIdRef.current !== generation) {
+      activeIdRef.current = generation;
       void checkTask(generation);
     }
   }, [generation]);
@@ -95,19 +101,19 @@ export function ImageWorkbench() {
   }
 
   async function generate() {
-    if (inFlight.current || !selected || !prompt.trim() || prompt.length > 10_000 || !ratios.includes(ratio) || uncertain)
+    if (inFlightRef.current || !selected || !prompt.trim() || prompt.length > 10_000 || !ratios.includes(ratio) || uncertain)
       return;
-    inFlight.current = true;
+    inFlightRef.current = true;
     setBusy(true);
     setError('');
     const id = crypto.randomUUID();
     const input = { id, model: selected.model.id, bindingId, prompt: prompt.trim(), aspectRatio: ratio };
-    activeId.current = id;
+    activeIdRef.current = id;
     setTask({ id, prompt: input.prompt, aspectRatio: ratio, status: 'submitting' });
     void navigate({ to: '/image', search: { generation: id }, replace: true });
     try {
       const response = await submitImage({ data: input });
-      if (activeId.current !== id)
+      if (activeIdRef.current !== id)
         return;
       if (response.ok) {
         setTask(response.data);
@@ -118,12 +124,15 @@ export function ImageWorkbench() {
       }
     }
     catch {
-      if (activeId.current !== id)
+      if (activeIdRef.current !== id)
         return;
       setTask(current => current && ({ ...current, status: 'unknown' }));
       setError('连接中断，生成结果尚未确认。请检查原任务，避免重复扣费。');
     }
-    finally { inFlight.current = false; setBusy(false); }
+    finally {
+      inFlightRef.current = false;
+      setBusy(false);
+    }
   }
 
   const result = task?.result as { images?: { url?: string }[] } | undefined;

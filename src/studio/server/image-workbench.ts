@@ -8,7 +8,9 @@ import { generateRequest } from './generation-service.ts';
 export type ImageWorkbenchResult<T> = { ok: true; data: T } | { ok: false; error: string; id?: string };
 
 async function result<T>(run: () => T | Promise<T>, uncertainId?: string): Promise<ImageWorkbenchResult<T>> {
-  try { return { ok: true, data: await run() }; }
+  try {
+    return { ok: true, data: await run() };
+  }
   catch (error) {
     if (error instanceof ModelError)
       return { ok: false, error: { invalid_input: '生图参数不符合当前模型能力，请检查输入和设置。', not_configured: '模型渠道未配置或已停用，请检查模型设置。', conflict: '任务 ID 与已保存的请求不一致，请检查原任务。', provider_unknown: '生成结果尚未确认，请检查原任务或供应商后台。', not_found: '未找到对应的图片任务。' }[error.code], ...(error.generationId ? { id: error.generationId } : {}) };

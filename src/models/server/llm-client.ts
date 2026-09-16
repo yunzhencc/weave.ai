@@ -21,8 +21,13 @@ export function streamText(input: { model: string; prompt: string; bindingId?: s
         yield chunk.type === EventType.RUN_ERROR ? { type: EventType.RUN_ERROR, message: 'Text provider request failed' } : chunk;
       }
     }
-    catch { yield { type: EventType.RUN_ERROR, message: 'Text provider request failed' }; }
-    finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
+    catch {
+      yield { type: EventType.RUN_ERROR, message: 'Text provider request failed' };
+    }
+    finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+    }
   }
   return safeStream();
 }

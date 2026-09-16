@@ -28,7 +28,11 @@ function setup() {
   vi.stubEnv('AI_DATA_DIR', dir);
   vi.stubEnv('AI_API_TOKEN', 'runtime-test');
   vi.stubEnv('MODEL_ENCRYPTION_KEY', randomBytes(32).toString('base64'));
-  return () => { vi.restoreAllMocks(); vi.unstubAllEnvs(); rmSync(dir, { recursive: true, force: true }); };
+  return () => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    rmSync(dir, { recursive: true, force: true });
+  };
 }
 
 it('configuration API works without auth and a dynamic text binding runs through TanStack', async () => {
@@ -70,7 +74,10 @@ it('task retries and video polling retain original binding and credential after 
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init) => {
       const req = new Request(url, init);
       assert.equal(req.headers.get('authorization'), 'Key old-account-key');
-      if (req.method === 'POST') { submissions++; return Response.json({ request_id: 'original-job', status: 'IN_QUEUE' }); }
+      if (req.method === 'POST') {
+        submissions++;
+        return Response.json({ request_id: 'original-job', status: 'IN_QUEUE' });
+      }
       assert.match(req.url, /original-job/);
       return req.url.includes('/status') ? Response.json({ status: 'COMPLETED' }) : Response.json({ video: { url: 'https://output.example/video.mp4' } });
     });

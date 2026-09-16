@@ -3,6 +3,7 @@ import type { Credential } from '../credentials.ts';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import process from 'node:process';
 import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
 import { adapterKinds } from '../../catalog.ts';
@@ -29,8 +30,12 @@ function read<T>(db: DatabaseSync, table: string, id: string): T | undefined {
   const row = db.prepare(`SELECT record FROM ${table} WHERE id = ?`).get(id);
   return row ? JSON.parse(row.record as string) as T : undefined;
 }
-function all<T>(db: DatabaseSync, table: string): T[] { return db.prepare(`SELECT record FROM ${table} ORDER BY rowid`).all().map(row => JSON.parse(row.record as string) as T); }
-function put(db: DatabaseSync, table: string, record: { id: string }) { db.prepare(`INSERT INTO ${table} (id, record) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET record = excluded.record`).run(record.id, JSON.stringify(record)); }
+function all<T>(db: DatabaseSync, table: string): T[] {
+  return db.prepare(`SELECT record FROM ${table} ORDER BY rowid`).all().map(row => JSON.parse(row.record as string) as T);
+}
+function put(db: DatabaseSync, table: string, record: { id: string }) {
+  db.prepare(`INSERT INTO ${table} (id, record) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET record = excluded.record`).run(record.id, JSON.stringify(record));
+}
 function nextRevision(previous: { revision: number } | undefined, supplied?: number) {
   if (previous ? previous.revision !== supplied : supplied !== undefined)
     throw new ModelError('conflict', 'Configuration changed; reload before saving');
@@ -68,24 +73,36 @@ function database<T>(run: (db: DatabaseSync) => T): T {
     db.exec('COMMIT');
     return result;
   }
-  finally { db.close(); }
+  finally {
+    db.close();
+  }
 }
 function providerDto(db: DatabaseSync, provider: StoredProvider): Provider {
   const credential = provider.credentialId ? read<Credential>(db, 'model_credentials', provider.credentialId) : undefined;
   let configured = false;
   if (credential) {
-    try { configured = Boolean(decryptCredential(credential)); }
+    try {
+      configured = Boolean(decryptCredential(credential));
+    }
     catch { /* Missing credentials leave configuration editable. */ }
   }
   return { ...provider, configured, keyHint: credential?.hint ?? null, credentialSource: credential?.source ?? null };
 }
-export function readCredential(id: string) { return database(db => read<Credential>(db, 'model_credentials', id)); }
-export function getCatalog(): Catalog { return database(db => ({ providers: all<StoredProvider>(db, 'model_providers').map(p => providerDto(db, p)), models: all<Model>(db, 'model_catalog'), bindings: all<Binding>(db, 'model_bindings') })); }
+export function readCredential(id: string) {
+  return database(db => read<Credential>(db, 'model_credentials', id));
+}
+export function getCatalog(): Catalog {
+  return database(db => ({ providers: all<StoredProvider>(db, 'model_providers').map(p => providerDto(db, p)), models: all<Model>(db, 'model_catalog'), bindings: all<Binding>(db, 'model_bindings') }));
+}
 export function saveProvider(input: ProviderInput): Provider {
   const data = parse(providerSchema, input);
   let url: URL;
-  try { url = new URL(data.baseUrl); }
-  catch { throw new ModelError('invalid_input', 'Invalid provider URL'); }
+  try {
+    url = new URL(data.baseUrl);
+  }
+  catch {
+    throw new ModelError('invalid_input', 'Invalid provider URL');
+  }
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.hash || url.search)
     throw new ModelError('invalid_input', 'Invalid provider URL');
   const baseUrl = url.toString().replace(/\/$/, '');
@@ -108,7 +125,9 @@ export function saveProvider(input: ProviderInput): Provider {
     return providerDto(db, provider);
   });
 }
-export function saveModel(input: ModelInput): Model { return database(db => saveModelInDb(db, input)); }
+export function saveModel(input: ModelInput): Model {
+  return database(db => saveModelInDb(db, input));
+}
 function saveModelInDb(db: DatabaseSync, input: ModelInput): Model {
   const data = parse(modelSchema, input);
   const previous = read<Model>(db, 'model_catalog', data.id);
@@ -124,7 +143,9 @@ function saveModelInDb(db: DatabaseSync, input: ModelInput): Model {
 function writeBinding(db: DatabaseSync, binding: Binding) {
   db.prepare(`INSERT INTO model_bindings (id, model_id, provider_id, adapter, upstream_id, record) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET model_id=excluded.model_id, provider_id=excluded.provider_id, adapter=excluded.adapter, upstream_id=excluded.upstream_id, record=excluded.record`).run(binding.id, binding.modelId, binding.providerId, binding.adapter, binding.upstreamModelId, JSON.stringify(binding));
 }
-export function saveBinding(input: BindingInput): Binding { return database(db => saveBindingInDb(db, input)); }
+export function saveBinding(input: BindingInput): Binding {
+  return database(db => saveBindingInDb(db, input));
+}
 function saveBindingInDb(db: DatabaseSync, input: BindingInput): Binding {
   const data = parse(bindingSchema, input);
   const previous = read<Binding>(db, 'model_bindings', data.id);
@@ -160,12 +181,16 @@ export function resolveModel(input: { modelId: string; bindingId?: string; kind:
     throw new ModelError('not_configured', 'Model binding is unavailable');
   return { bindingId: binding.id, providerId: provider.id, adapter: binding.adapter, baseUrl: provider.baseUrl, upstreamModelId: binding.upstreamModelId, credentialId: provider.credentialId, providerRevision: provider.revision, bindingRevision: binding.revision, capabilities: binding.capabilities };
 }
-export function getProviders() { return getCatalog().providers; }
+export function getProviders() {
+  return getCatalog().providers;
+}
 export function getModels(filter: ModelFilter = {}) {
   const catalog = getCatalog();
   return catalog.models.filter(m => (!filter.kind || m.kind === filter.kind) && (!filter.vendor || m.vendor === filter.vendor) && (!filter.providerId || catalog.bindings.some(b => b.modelId === m.id && b.providerId === filter.providerId)));
 }
-export function getModel(id: string) { return getModels().find(m => m.id === id); }
+export function getModel(id: string) {
+  return getModels().find(m => m.id === id);
+}
 export function getAvailableModels(filter: ModelFilter = {}) {
   const catalog = getCatalog();
   return catalog.models.filter(m => m.enabled && (!filter.kind || m.kind === filter.kind) && (!filter.vendor || m.vendor === filter.vendor) && catalog.bindings.some(b => b.modelId === m.id && b.enabled && (!filter.providerId || b.providerId === filter.providerId) && catalog.providers.some(p => p.id === b.providerId && p.enabled && p.configured)));

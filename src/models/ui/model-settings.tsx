@@ -51,8 +51,12 @@ function slug(value: string) {
 }
 
 function origin(value: string) {
-  try { return new URL(value).origin; }
-  catch { return ''; }
+  try {
+    return new URL(value).origin;
+  }
+  catch {
+    return '';
+  }
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
@@ -77,19 +81,34 @@ export function ModelSettings() {
   async function load() {
     setError('');
     setBusy('load');
-    try { setCatalog(await request<Catalog>('/api/ai/admin/catalog')); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : '目录加载失败'); }
-    finally { setBusy(''); }
+    try {
+      setCatalog(await request<Catalog>('/api/ai/admin/catalog'));
+    }
+    catch (cause) {
+      setError(cause instanceof Error ? cause.message : '目录加载失败');
+    }
+    finally {
+      setBusy('');
+    }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function run(key: string, action: () => Promise<unknown>) {
     setError('');
     setBusy(key);
-    try { await action(); await load(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : '操作失败'); }
-    finally { setBusy(''); }
+    try {
+      await action();
+      await load();
+    }
+    catch (cause) {
+      setError(cause instanceof Error ? cause.message : '操作失败');
+    }
+    finally {
+      setBusy('');
+    }
   }
 
   return (
@@ -209,14 +228,32 @@ function Providers({ catalog, busy, run }: { catalog: Catalog; busy: string; run
           <CardDescription>更新密钥时填写新值；留空会保留现有凭据。</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4" onSubmit={(event) => { event.preventDefault(); void run('provider-save', async () => { await post('/api/ai/admin/providers', form); setForm(empty); }); }}>
+          <form
+            className="grid gap-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void run('provider-save', async () => {
+                await post('/api/ai/admin/providers', form);
+                setForm(empty);
+              });
+            }}
+          >
             <label className={fieldClass}>
               名称
               <Input required value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />
             </label>
             <label className={fieldClass}>
               渠道类型
-              <select className={selectClass} value={form.type} onChange={(event) => { const type = event.target.value as ProviderType; setForm({ ...form, type, baseUrl: providerUrls[type], confirmCredentialReuse: undefined }); }}>{providerTypes.map(type => <option key={type}>{type}</option>)}</select>
+              <select
+                className={selectClass}
+                value={form.type}
+                onChange={(event) => {
+                  const type = event.target.value as ProviderType;
+                  setForm({ ...form, type, baseUrl: providerUrls[type], confirmCredentialReuse: undefined });
+                }}
+              >
+                {providerTypes.map(type => <option key={type}>{type}</option>)}
+              </select>
             </label>
             <label className={fieldClass}>
               Base URL
@@ -243,7 +280,18 @@ function Providers({ catalog, busy, run }: { catalog: Catalog; busy: string; run
                 {busy === 'provider-save' && <LoaderCircle className="animate-spin" />}
                 保存渠道
               </Button>
-              {form.id && <Button type="button" variant="outline" onClick={() => { setForm(empty); setOriginalBaseUrl(''); }}>取消</Button>}
+              {form.id && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setForm(empty);
+                    setOriginalBaseUrl('');
+                  }}
+                >
+                  取消
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>
@@ -322,8 +370,12 @@ function Models({ catalog, busy, run }: { catalog: Catalog; busy: string; run: (
     && (providerFilter === 'all' || catalog.bindings.some(binding => binding.modelId === model.id && binding.providerId === providerFilter)),
   ), [catalog.bindings, catalog.models, filter, providerFilter, vendorFilter]);
 
-  function editModel(model: Model) { setModelForm({ ...model }); }
-  function editBinding(binding: Binding) { setBindingForm({ ...binding, capabilities: { ...binding.capabilities } }); }
+  function editModel(model: Model) {
+    setModelForm({ ...model });
+  }
+  function editBinding(binding: Binding) {
+    setBindingForm({ ...binding, capabilities: { ...binding.capabilities } });
+  }
   const matchingBindings = catalog.bindings.filter(binding => binding.modelId === modelForm.id);
 
   return (
@@ -400,7 +452,16 @@ function Models({ catalog, busy, run }: { catalog: Catalog; busy: string; run: (
         <Card>
           <CardHeader><CardTitle>{modelForm.revision ? '编辑模型' : '新增模型'}</CardTitle></CardHeader>
           <CardContent>
-            <form className="grid gap-4" onSubmit={(event) => { event.preventDefault(); void run('model-save', async () => { await post('/api/ai/admin/models', modelForm); setModelForm(emptyModel); }); }}>
+            <form
+              className="grid gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void run('model-save', async () => {
+                  await post('/api/ai/admin/models', modelForm);
+                  setModelForm(emptyModel);
+                });
+              }}
+            >
               <label className={fieldClass}>
                 稳定 ID
                 <Input required disabled={modelForm.revision !== undefined} value={modelForm.id} onChange={event => setModelForm({ ...modelForm, id: event.target.value })} />
@@ -451,8 +512,12 @@ function Models({ catalog, busy, run }: { catalog: Catalog; busy: string; run: (
 }
 
 function BindingForm({ catalog, value, setValue, busy, run, reset }: { catalog: Catalog; value: BindingInput; setValue: (value: BindingInput) => void; busy: string; run: (key: string, action: () => Promise<unknown>) => Promise<void>; reset: BindingInput }) {
-  function setCapabilities(patch: Partial<Capabilities>) { setValue({ ...value, capabilities: { ...value.capabilities, ...patch } }); }
-  function toggleArray<T extends string | number>(items: T[] | undefined, item: T): T[] { return items?.includes(item) ? items.filter(value => value !== item) : [...(items || []), item]; }
+  function setCapabilities(patch: Partial<Capabilities>) {
+    setValue({ ...value, capabilities: { ...value.capabilities, ...patch } });
+  }
+  function toggleArray<T extends string | number>(items: T[] | undefined, item: T): T[] {
+    return items?.includes(item) ? items.filter(value => value !== item) : [...(items || []), item];
+  }
   const kind = adapters.includes(value.adapter) ? (value.adapter.endsWith('video') ? 'videos' : value.adapter.endsWith('image') ? 'images' : 'text') : 'text';
   return (
     <Card>
@@ -461,7 +526,16 @@ function BindingForm({ catalog, value, setValue, busy, run, reset }: { catalog: 
         <CardDescription>能力属于这条调用路线，不会自动合并到其他渠道。</CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="grid gap-4" onSubmit={(event) => { event.preventDefault(); void run('binding-save', async () => { await post('/api/ai/admin/bindings', value); setValue(reset); }); }}>
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void run('binding-save', async () => {
+              await post('/api/ai/admin/bindings', value);
+              setValue(reset);
+            });
+          }}
+        >
           <label className={fieldClass}>
             绑定 ID
             <Input required disabled={value.revision !== undefined} value={value.id} onChange={event => setValue({ ...value, id: event.target.value })} />
@@ -482,7 +556,16 @@ function BindingForm({ catalog, value, setValue, busy, run, reset }: { catalog: 
           </label>
           <label className={fieldClass}>
             适配器
-            <select className={selectClass} value={value.adapter} onChange={(event) => { const adapter = event.target.value as AdapterId; setValue({ ...value, adapter, capabilities: adapter.endsWith('image') ? { maxReferenceImages: 0 } : {} }); }}>{adapters.map(adapter => <option key={adapter}>{adapter}</option>)}</select>
+            <select
+              className={selectClass}
+              value={value.adapter}
+              onChange={(event) => {
+                const adapter = event.target.value as AdapterId;
+                setValue({ ...value, adapter, capabilities: adapter.endsWith('image') ? { maxReferenceImages: 0 } : {} });
+              }}
+            >
+              {adapters.map(adapter => <option key={adapter}>{adapter}</option>)}
+            </select>
           </label>
           <label className={fieldClass}>
             上游模型 ID

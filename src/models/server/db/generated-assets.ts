@@ -1,6 +1,7 @@
 import type { Generation, GenerationRecord } from '../../generation.ts';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import process from 'node:process';
 import { DatabaseSync } from 'node:sqlite';
 import { ModelError } from '../../errors.ts';
 import { generationIdentity } from '../../generation.ts';

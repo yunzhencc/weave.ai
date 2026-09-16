@@ -1,4 +1,5 @@
 import type { Provider } from '../../catalog.ts';
+import { Buffer } from 'node:buffer';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -17,8 +18,13 @@ beforeEach(() => {
   vi.stubEnv('OPENROUTER_API_KEY', '');
   vi.stubEnv('DASHSCOPE_BASE_URL', '');
 });
-afterEach(() => { vi.unstubAllEnvs(); rmSync(dir, { recursive: true, force: true }); });
-function providerInput(p: Provider) { return { id: p.id, revision: p.revision, name: p.name, type: p.type, baseUrl: p.baseUrl, enabled: p.enabled }; }
+afterEach(() => {
+  vi.unstubAllEnvs();
+  rmSync(dir, { recursive: true, force: true });
+});
+function providerInput(p: Provider) {
+  return { id: p.id, revision: p.revision, name: p.name, type: p.type, baseUrl: p.baseUrl, enabled: p.enabled };
+}
 
 it('migrates once alongside generations, retaining edits and frozen seed URLs', async () => {
   const db = new DatabaseSync(join(dir, 'generations.sqlite'));

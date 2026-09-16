@@ -5,7 +5,7 @@ import type { ComponentPropsWithoutRef } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { ActionSwapIcon } from '#/components/motion/action-swap.tsx';
 import { EASE_OUT_CSS } from '#/lib/ease.ts';
 import { cn } from '#/lib/utils.ts';
@@ -123,14 +123,13 @@ const CIRCLE_ORIGIN: Record<RectStart, string> = {
   'bottom-up': '50% 100%',
 };
 
-export function useThemeToggle({
+function useThemeToggle({
   variant = 'rectangle',
   start = 'bottom-up',
 }: { variant?: ThemeVariant; start?: RectStart } = {}) {
   const { setTheme, resolvedTheme } = useTheme();
   const reduce = useReducedMotion() ?? false;
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   useEffect(() => {
     if (document.getElementById(VT_STYLE_ID))
       return;

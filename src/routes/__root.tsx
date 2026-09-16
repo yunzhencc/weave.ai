@@ -42,6 +42,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* eslint-disable-next-line react/dom-no-dangerously-set-innerhtml -- static theme migration script runs before hydration. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_MIGRATION_SCRIPT }} />
         <HeadContent />
       </head>

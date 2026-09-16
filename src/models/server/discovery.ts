@@ -1,4 +1,5 @@
 import type { Candidate, Provider } from '../catalog.ts';
+import { Buffer } from 'node:buffer';
 import { ModelError } from '../errors.ts';
 import { models } from '../models.ts';
 import { providerFetch } from './provider-network.ts';
@@ -41,7 +42,9 @@ async function readDirectory(provider: Provider, apiKey: string, path: string): 
   }
 }
 
-function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === 'object' && !Array.isArray(value); }
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
 export async function discoverModels(provider: Provider, apiKey: string): Promise<{ candidates: Candidate[]; checkedAt: string }> {
   if (provider.type === 'fal') {

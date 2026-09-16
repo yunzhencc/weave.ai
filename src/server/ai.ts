@@ -1,4 +1,6 @@
+import { Buffer } from 'node:buffer';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
+import process from 'node:process';
 import { toServerSentEventsResponse } from '@tanstack/ai';
 import { ModelError } from '../models/errors.ts';
 import { parseText } from '../models/generation.ts';
@@ -53,8 +55,12 @@ async function body(request: Request, optional = false) {
   const bytes = await readBody(request);
   if (optional && bytes.length === 0)
     return undefined;
-  try { return JSON.parse(bytes.toString('utf8')) as unknown; }
-  catch { throw new ApiError(400, 'Invalid JSON'); }
+  try {
+    return JSON.parse(bytes.toString('utf8')) as unknown;
+  }
+  catch {
+    throw new ApiError(400, 'Invalid JSON');
+  }
 }
 
 const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });

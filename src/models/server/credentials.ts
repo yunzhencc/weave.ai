@@ -1,4 +1,6 @@
+import { Buffer } from 'node:buffer';
 import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from 'node:crypto';
+import process from 'node:process';
 import { ModelError } from '../errors.ts';
 import { readCredential } from './db/catalog.ts';
 
@@ -18,6 +20,7 @@ export function createCredential(input: { apiKey?: string; envKey?: string }): C
     throw new ModelError('invalid_input', 'Choose one credential source');
   const base = { id: randomUUID(), ciphertext: null, iv: null, tag: null, hint: null };
   if (input.envKey !== undefined) {
+    // eslint-disable-next-line unicorn/prefer-includes -- input.envKey is an arbitrary string until this membership check narrows it.
     if (!credentialEnvironmentNames.some(value => value === input.envKey))
       throw new ModelError('invalid_input', 'Unsupported credential environment variable');
     return { ...base, source: 'env', envKey: input.envKey };
@@ -33,6 +36,7 @@ export function createCredential(input: { apiKey?: string; envKey?: string }): C
 
 export function decryptCredential(record: Credential): string {
   if (record.source === 'env') {
+    // eslint-disable-next-line unicorn/prefer-includes -- stored envKey can be null or an arbitrary string until validated.
     if (!credentialEnvironmentNames.some(value => value === record.envKey))
       throw new ModelError('not_configured', 'Unsupported credential reference');
     const secret = process.env[record.envKey!]?.trim();

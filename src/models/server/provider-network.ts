@@ -2,6 +2,7 @@ import { lookup } from 'node:dns/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { BlockList, isIP } from 'node:net';
+import process from 'node:process';
 import { pipeline, Readable } from 'node:stream';
 import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
 import { ModelError } from '../errors.ts';
@@ -26,10 +27,14 @@ const globalV6 = new BlockList();
 globalV6.addSubnet('2000::', 3, 'ipv6');
 for (const [address, prefix] of [['2001::', 23], ['2001:db8::', 32], ['2002::', 16], ['3fff::', 20]] as const) blocked.addSubnet(address, prefix, 'ipv6');
 
-function invalid(): never { throw new ModelError('invalid_input', '渠道地址不符合网络访问策略'); }
+function invalid(): never {
+  throw new ModelError('invalid_input', '渠道地址不符合网络访问策略');
+}
 function parsedUrl(value: string) {
   let url: URL;
-  try { url = new URL(value); }
+  try {
+    url = new URL(value);
+  }
   catch { return invalid(); }
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
   const authority = `${url.hostname}:${url.port || (url.protocol === 'https:' ? '443' : '80')}`;
