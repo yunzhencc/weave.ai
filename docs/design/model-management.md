@@ -79,10 +79,10 @@ flowchart TD
 
 ```ts
 // 设计示例；不是当前已导出的类型。
-type BindingCapabilities =
-  | { kind: 'text' }
-  | { kind: 'images'; aspectRatios: string[]; maxReferenceImages: number }
-  | { kind: 'videos'; aspectRatios: string[]; durations: number[] }
+type BindingCapabilities
+  = | { kind: 'text' }
+    | { kind: 'images'; aspectRatios: string[]; maxReferenceImages: number }
+    | { kind: 'videos'; aspectRatios: string[]; durations: number[] };
 ```
 
 初期只描述现有能力。参数 JSON 使用 Zod 结构校验，再按 `adapter` 校验类别与已支持端点能力，不能存放任意请求模板或脚本。图片尺寸映射、fal 特殊参数、提交／查询协议等仍由适配器实现。

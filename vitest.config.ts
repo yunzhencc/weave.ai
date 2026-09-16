@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -11,4 +11,4 @@ export default defineConfig({
     environment: 'node',
     pool: 'forks',
   },
-})
+});

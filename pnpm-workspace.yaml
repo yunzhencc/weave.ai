@@ -1,9 +1,7 @@
-packages:
-  - apps/*
-  - packages/*
-
 # The TanStack app lives at the workspace root; shadcn adds dependencies here.
 ignoreWorkspaceRootCheck: true
+
+minimumReleaseAgeExcludePrune: true
 
 # These exact versions are already pinned in the project's lockfile.
 minimumReleaseAgeExclude:
@@ -11,9 +9,20 @@ minimumReleaseAgeExclude:
   - '@vitest/spy@5.0.1'
   - vitest@5.0.1
 
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@6.3.1
+
+shellEmulator: true
+
+packages:
+  - apps/*
+  - packages/*
+
 allowBuilds:
   '@openrouter/sdk': false
   esbuild: true
   lightningcss: true
   node-pty: true
+  simple-git-hooks: true
   workerd: false

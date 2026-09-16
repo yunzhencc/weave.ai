@@ -1,21 +1,24 @@
 {
   "name": "weave.ai",
-  "private": true,
   "type": "module",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
   "imports": {
     "#/*": "./src/*"
   },
-  "packageManager": "pnpm@12.4.2",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "dev": "vite dev --port 3000",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
@@ -50,7 +53,12 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^9.5.1",
     "@cloudflare/vite-plugin": "^1.54.9",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/types": "^21.2.0",
+    "@eslint-react/eslint-plugin": "^5.19.1",
     "@tailwindcss/typography": "0.5.20",
     "@tanstack/devtools-vite": "0.8.5",
     "@tanstack/react-ai-devtools": "0.2.71",
@@ -64,9 +72,26 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
     "code-inspector-plugin": "^2.0.9",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "lint-staged": "^17.5.1",
     "playwright": "1.63.0",
+    "simple-git-hooks": "^2.14.0",
     "typescript": "6.0.3",
     "vite": "8.3.0",
     "vitest": "5.0.1"
-  }
+  },
+  "simple-git-hooks": {
+    "commit-msg": "npx --no -- commitlint --edit $1",
+    "pre-commit": "npx lint-staged",
+    "preserveUnused": [
+      "commit-msg"
+    ]
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  },
+  "browserslist": [
+    "defaults"
+  ]
 }

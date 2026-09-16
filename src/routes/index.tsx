@@ -1,8 +1,8 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { ThemeToggle } from '#/components/motion/theme-toggle';
 import { Button } from '#/components/ui/button';
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({ component: App });
 
 function App() {
   return (
@@ -20,5 +20,5 @@ function App() {
         iconClassName="h-5 w-5"
       />
     </main>
-  )
+  );
 }

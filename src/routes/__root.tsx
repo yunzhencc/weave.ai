@@ -1,10 +1,10 @@
-import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ThemeProvider } from 'next-themes'
-import appCss from '../styles.css?url'
+import { TanStackDevtools } from '@tanstack/react-devtools';
+import { createRootRoute, HeadContent, Link, Scripts } from '@tanstack/react-router';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { ThemeProvider } from 'next-themes';
+import appCss from '../styles.css?url';
 
-const THEME_MIGRATION_SCRIPT = `try{var theme=localStorage.getItem('theme');if(theme&&!['light','dark','system'].includes(theme))localStorage.removeItem('theme')}catch{}`
+const THEME_MIGRATION_SCRIPT = `try{var theme=localStorage.getItem('theme');if(theme&&!['light','dark','system'].includes(theme))localStorage.removeItem('theme')}catch{}`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -36,7 +36,7 @@ export const Route = createRootRoute({
       </Link>
     </main>
   ),
-})
+});
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -63,5 +63,5 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

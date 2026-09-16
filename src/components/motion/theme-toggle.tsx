@@ -1,26 +1,27 @@
-"use client";
+'use client';
 // beui.dev/components/motion/theme-toggle
 
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useReducedMotion } from "motion/react";
-import { useEffect, useState, type ComponentPropsWithoutRef } from "react";
-import { ActionSwapIcon } from "#/components/motion/action-swap.tsx";
-import { EASE_OUT_CSS } from "#/lib/ease.ts";
-import { cn } from "#/lib/utils.ts";
+import type { ComponentPropsWithoutRef } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useReducedMotion } from 'motion/react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { ActionSwapIcon } from '#/components/motion/action-swap.tsx';
+import { EASE_OUT_CSS } from '#/lib/ease.ts';
+import { cn } from '#/lib/utils.ts';
 
-export type ThemeVariant = "rectangle" | "circle" | "circle-blur" | "blinds";
+export type ThemeVariant = 'rectangle' | 'circle' | 'circle-blur' | 'blinds';
 
-export type RectStart =
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
-  | "center"
-  | "bottom-up";
+export type RectStart
+  = | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'center'
+    | 'bottom-up';
 
 export interface ThemeToggleProps
-  extends Omit<ComponentPropsWithoutRef<"button">, "children" | "onClick"> {
+  extends Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'onClick'> {
   /** Animation variant. Default: "rectangle". */
   variant?: ThemeVariant;
   /** Origin direction for the reveal. Default: "bottom-up". */
@@ -28,7 +29,7 @@ export interface ThemeToggleProps
   iconClassName?: string;
 }
 
-const VT_STYLE_ID = "beui-theme-toggle-vt";
+const VT_STYLE_ID = 'beui-theme-toggle-vt';
 
 // View transitions animate in CSS, not motion springs, so easing here is
 // either EASE_OUT_CSS or a keyword. The circle variants keep the Material
@@ -105,64 +106,67 @@ html[data-beui-vt="blinds"]::view-transition-new(root) {
 `;
 
 const RECT_FROM: Record<RectStart, string> = {
-  "top-left":    "inset(0 100% 100% 0)",
-  "top-right":   "inset(0 0 100% 100%)",
-  "bottom-left": "inset(100% 100% 0 0)",
-  "bottom-right":"inset(100% 0 0 100%)",
-  center:        "inset(50% 50% 50% 50%)",
-  "bottom-up":   "inset(100% 0 0 0)",
+  'top-left': 'inset(0 100% 100% 0)',
+  'top-right': 'inset(0 0 100% 100%)',
+  'bottom-left': 'inset(100% 100% 0 0)',
+  'bottom-right': 'inset(100% 0 0 100%)',
+  'center': 'inset(50% 50% 50% 50%)',
+  'bottom-up': 'inset(100% 0 0 0)',
 };
 
 const CIRCLE_ORIGIN: Record<RectStart, string> = {
-  "top-left":    "0% 0%",
-  "top-right":   "100% 0%",
-  "bottom-left": "0% 100%",
-  "bottom-right":"100% 100%",
-  center:        "50% 50%",
-  "bottom-up":   "50% 100%",
+  'top-left': '0% 0%',
+  'top-right': '100% 0%',
+  'bottom-left': '0% 100%',
+  'bottom-right': '100% 100%',
+  'center': '50% 50%',
+  'bottom-up': '50% 100%',
 };
 
 export function useThemeToggle({
-  variant = "rectangle",
-  start = "bottom-up",
+  variant = 'rectangle',
+  start = 'bottom-up',
 }: { variant?: ThemeVariant; start?: RectStart } = {}) {
   const { setTheme, resolvedTheme } = useTheme();
   const reduce = useReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   useEffect(() => {
-    if (document.getElementById(VT_STYLE_ID)) return;
-    const el = document.createElement("style");
+    if (document.getElementById(VT_STYLE_ID))
+      return;
+    const el = document.createElement('style');
     el.id = VT_STYLE_ID;
     el.textContent = VT_CSS;
     document.head.appendChild(el);
   }, []);
-  const isDark = mounted && resolvedTheme === "dark";
+  const isDark = mounted && resolvedTheme === 'dark';
 
   const toggle = () => {
-    const next = isDark ? "light" : "dark";
+    const next = isDark ? 'light' : 'dark';
 
-    if (reduce || !("startViewTransition" in document)) {
+    if (reduce || !('startViewTransition' in document)) {
       setTheme(next);
       return;
     }
 
     const root = document.documentElement;
 
-    if (variant === "rectangle") {
-      root.style.setProperty("--beui-vt-from", RECT_FROM[start]);
-      root.dataset.beuiVt = "rect";
-    } else if (variant === "blinds") {
+    if (variant === 'rectangle') {
+      root.style.setProperty('--beui-vt-from', RECT_FROM[start]);
+      root.dataset.beuiVt = 'rect';
+    }
+    else if (variant === 'blinds') {
       // Slats sweep the whole viewport; there is no origin point to set.
-      root.dataset.beuiVt = "blinds";
-    } else {
-      root.style.setProperty("--beui-vt-origin", CIRCLE_ORIGIN[start]);
+      root.dataset.beuiVt = 'blinds';
+    }
+    else {
+      root.style.setProperty('--beui-vt-origin', CIRCLE_ORIGIN[start]);
       root.dataset.beuiVt = variant;
     }
 
     const vt = (
       document as Document & {
-        startViewTransition(cb: () => void): { finished: Promise<void> };
+        startViewTransition: (cb: () => void) => { finished: Promise<void> };
       }
     ).startViewTransition(() => setTheme(next));
 
@@ -175,8 +179,8 @@ export function useThemeToggle({
 }
 
 export function ThemeToggle({
-  variant = "rectangle",
-  start = "bottom-up",
+  variant = 'rectangle',
+  start = 'bottom-up',
   className,
   iconClassName,
   ...rest
@@ -186,26 +190,30 @@ export function ThemeToggle({
   return (
     <button
       type="button"
-      aria-label={mounted && isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={mounted && isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={toggle}
-      className={cn("flex items-center justify-center", className)}
+      className={cn('flex items-center justify-center', className)}
       {...rest}
     >
-      {mounted ? (
-        <ActionSwapIcon
-          value={isDark ? "dark" : "light"}
-          animation="blur"
-          className={iconClassName}
-        >
-          {isDark ? (
-            <Sun className={iconClassName} />
-          ) : (
-            <Moon className={iconClassName} />
+      {mounted
+        ? (
+            <ActionSwapIcon
+              value={isDark ? 'dark' : 'light'}
+              animation="blur"
+              className={iconClassName}
+            >
+              {isDark
+                ? (
+                    <Sun className={iconClassName} />
+                  )
+                : (
+                    <Moon className={iconClassName} />
+                  )}
+            </ActionSwapIcon>
+          )
+        : (
+            <span className={iconClassName} aria-hidden="true" />
           )}
-        </ActionSwapIcon>
-      ) : (
-        <span className={iconClassName} aria-hidden="true" />
-      )}
     </button>
   );
 }
