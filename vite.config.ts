@@ -5,22 +5,26 @@ import viteReact from '@vitejs/plugin-react';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 import { defineConfig } from 'vite';
 
-const config = defineConfig({
-  resolve: {
-    tsconfigPaths: true,
-  },
-  plugins: [
-    codeInspectorPlugin({
-      bundler: 'vite',
-      lang: 'zh',
-      editor: 'code',
-      hideConsole: true,
-    }),
-    devtools(),
-    tailwindcss(),
-    tanstackStart(),
-    viteReact(),
-  ],
+const config = defineConfig(({ command }) => {
+  const isDev = command === 'serve';
+
+  return {
+    resolve: {
+      tsconfigPaths: true,
+    },
+    plugins: [
+      isDev && codeInspectorPlugin({
+        bundler: 'vite',
+        lang: 'zh',
+        editor: 'code',
+        hideConsole: true,
+      }),
+      isDev && devtools(),
+      tailwindcss(),
+      tanstackStart(),
+      viteReact(),
+    ],
+  };
 });
 
 export default config;
