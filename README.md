@@ -49,6 +49,6 @@ pnpm typecheck
 pnpm build
 ```
 
-自动化测试模拟网络，覆盖模型选择、官方地址、参数、流式响应与错误脱敏，不证明真实密钥、账号权限或额度可用。
+`pnpm test` 使用 Vitest 在 Node 环境运行 `src/**/*.test.{ts,tsx}`。现有测试使用真实 SDK、临时 SQLite 和模拟网络，覆盖模型选择、官方地址、参数、流式响应、错误脱敏、任务幂等与付费请求重试保护，无需真实供应商密钥，不产生模型费用，也不证明真实账号权限或额度可用。测试组织与隔离规则见 [架构说明](docs/architecture.md#测试与文档维护)。
 
 参考：[百炼接口与地域配置](https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope)、[官方模型目录](https://help.aliyun.com/zh/model-studio/models)、[TanStack 兼容适配器](https://tanstack.com/ai/latest/docs/adapters/openai-compatible)。

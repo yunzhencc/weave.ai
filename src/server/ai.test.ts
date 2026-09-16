@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { mock, test } from 'node:test'
+import { test, vi } from 'vitest'
 import { handleAiRequest } from './ai.ts'
 import { parseGeneration } from '../models/generation.ts'
 import { reserveGeneration, readGeneration, updateGeneration } from '../models/server/db/generated-assets.ts'
@@ -10,8 +10,8 @@ import { generate } from '../studio/server/generation-service.ts'
 
 test('model integration validates inputs, protects paid calls and keeps durable idempotency', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'weave-ai-test-'))
-  process.env.AI_DATA_DIR = dir
-  process.env.AI_API_TOKEN = 'test-secret'
+  vi.stubEnv('AI_DATA_DIR', dir)
+  vi.stubEnv('AI_API_TOKEN', 'test-secret')
   try {
     const input = { id: '74147a3a-6775-44a1-886b-bc797ed21476', model: 'flux-schnell', prompt: 'A mountain', aspectRatio: '16:9' }
     const parsed = parseGeneration('images', input)
@@ -39,17 +39,16 @@ test('model integration validates inputs, protects paid calls and keeps durable 
     const missing = await handleAiRequest(new Request('http://localhost/api/ai/jobs/missing', { headers }), 'jobs/missing')
     assert.equal(missing.status, 404)
   } finally {
-    delete process.env.AI_DATA_DIR
-    delete process.env.AI_API_TOKEN
+    vi.unstubAllEnvs()
     rmSync(dir, { recursive: true, force: true })
   }
 })
 
 test('OpenRouter streams text and never exposes upstream error details', async () => {
-  process.env.AI_API_TOKEN = 'test-secret'
-  process.env.OPENROUTER_API_KEY = 'router-test-secret'
+  vi.stubEnv('AI_API_TOKEN', 'test-secret')
+  vi.stubEnv('OPENROUTER_API_KEY', 'router-test-secret')
   let fail = false
-  const fetchMock = mock.method(globalThis, 'fetch', async (url: string | URL | Request, init?: RequestInit) => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url: string | URL | Request, init?: RequestInit) => {
     const req = new Request(url, init)
     assert.equal(new URL(req.url).hostname, 'openrouter.ai')
     assert.equal(req.headers.get('authorization'), 'Bearer router-test-secret')
@@ -71,21 +70,20 @@ test('OpenRouter streams text and never exposes upstream error details', async (
     assert.match(failure, /RUN_ERROR/)
     assert.doesNotMatch(failure, /private-provider-detail|router-test-secret/)
   } finally {
-    fetchMock.mock.restore()
-    delete process.env.AI_API_TOKEN
-    delete process.env.OPENROUTER_API_KEY
+    fetchMock.mockRestore()
+    vi.unstubAllEnvs()
   }
 })
 
 test('real fal adapters submit once, map model parameters, poll saved jobs and persist results', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'weave-ai-sdk-'))
-  process.env.AI_DATA_DIR = dir
-  process.env.AI_API_TOKEN = 'test-secret'
-  process.env.FAL_KEY = 'fal-test-secret'
+  vi.stubEnv('AI_DATA_DIR', dir)
+  vi.stubEnv('AI_API_TOKEN', 'test-secret')
+  vi.stubEnv('FAL_KEY', 'fal-test-secret')
   const calls: Request[] = []
   let fail = false
   let resultUnavailable = false
-  const fetchMock = mock.method(globalThis, 'fetch', async (url: string | URL | Request, init?: RequestInit) => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url: string | URL | Request, init?: RequestInit) => {
     const req = new Request(url, init)
     calls.push(req)
     assert.equal(req.headers.get('authorization'), 'Key fal-test-secret')
@@ -150,10 +148,8 @@ test('real fal adapters submit once, map model parameters, poll saved jobs and p
     await call('videos', uncertain)
     assert.equal(calls.length, count + 1)
   } finally {
-    fetchMock.mock.restore()
-    delete process.env.AI_DATA_DIR
-    delete process.env.AI_API_TOKEN
-    delete process.env.FAL_KEY
+    fetchMock.mockRestore()
+    vi.unstubAllEnvs()
     rmSync(dir, { recursive: true, force: true })
   }
 })

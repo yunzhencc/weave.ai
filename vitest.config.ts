@@ -8,7 +8,6 @@ export default defineConfig({
   plugins: [viteReact()],
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['./test/setup.ts'],
     environment: 'node',
     pool: 'forks',
   },

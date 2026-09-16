@@ -1,14 +1,12 @@
 import assert from 'node:assert/strict'
-import { mock, test } from 'node:test'
+import { test, vi } from 'vitest'
 import { handleAiRequest } from './ai.ts'
 
 test('official Qwen models use DashScope chat completions and protect credentials', async () => {
-  const keys = ['AI_API_TOKEN', 'DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL'] as const
-  const previous = keys.map((key) => process.env[key])
   const modelIds = ['qwen3.8-max', 'qwen3.7-plus', 'qwen3.8-flash']
   const requests: Request[] = []
   let fail = false
-  const fetchMock = mock.method(globalThis, 'fetch', async (url: string | URL | Request, init?: RequestInit) => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url: string | URL | Request, init?: RequestInit) => {
     const request = new Request(url, init)
     requests.push(request)
     if (fail) return Response.json({ error: { message: 'private-provider-detail dashscope-test-secret', code: 'ServiceUnavailable' } }, { status: 503 })
@@ -21,9 +19,9 @@ test('official Qwen models use DashScope chat completions and protect credential
     ...(model ? { body: JSON.stringify({ model, prompt: 'Hello' }) } : {}),
   }), path)
   try {
-    process.env.AI_API_TOKEN = 'qwen-api-test-secret'
-    delete process.env.DASHSCOPE_API_KEY
-    delete process.env.DASHSCOPE_BASE_URL
+    vi.stubEnv('AI_API_TOKEN', 'qwen-api-test-secret')
+    vi.stubEnv('DASHSCOPE_API_KEY', undefined)
+    vi.stubEnv('DASHSCOPE_BASE_URL', undefined)
     assert.equal((await call('text', modelIds[0], false)).status, 401)
     assert.equal(requests.length, 0)
     const unconfigured = await (await call('models')).json()
@@ -33,7 +31,7 @@ test('official Qwen models use DashScope chat completions and protect credential
     assert.equal((await call('text', modelIds[0])).status, 503)
     assert.equal(requests.length, 0)
 
-    process.env.DASHSCOPE_API_KEY = 'dashscope-test-secret'
+    vi.stubEnv('DASHSCOPE_API_KEY', 'dashscope-test-secret')
     const configured = await (await call('models')).text()
     assert.doesNotMatch(configured, /dashscope-test-secret|qwen-api-test-secret/)
     for (const id of modelIds) assert.equal(JSON.parse(configured).find((model: { id: string }) => model.id === id).configured, true)
@@ -60,7 +58,7 @@ test('official Qwen models use DashScope chat completions and protect credential
       assert.deepEqual(body.messages, [{ role: 'user', content: 'Hello' }])
     }
 
-    process.env.DASHSCOPE_BASE_URL = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
+    vi.stubEnv('DASHSCOPE_BASE_URL', 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1')
     assert.match(await (await call('text', modelIds[0])).text(), /Hello Qwen/)
     assert.equal(requests.at(-1)!.url, 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions')
     fail = true
@@ -70,10 +68,7 @@ test('official Qwen models use DashScope chat completions and protect credential
     assert.match(failure, /RUN_ERROR/)
     assert.doesNotMatch(failure, /private-provider-detail|dashscope-test-secret|qwen-api-test-secret/)
   } finally {
-    fetchMock.mock.restore()
-    keys.forEach((key, index) => {
-      if (previous[index] === undefined) delete process.env[key]
-      else process.env[key] = previous[index]
-    })
+    fetchMock.mockRestore()
+    vi.unstubAllEnvs()
   }
 })

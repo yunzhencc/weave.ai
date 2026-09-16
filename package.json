@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite dev --port 3000",
-    "test": "node --test src/server/*.test.ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "generate-routes": "tsr generate",
     "build": "vite build",
