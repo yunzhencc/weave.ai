@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "#/components",
-    "utils": "#/lib/utils",
-    "ui": "#/components/ui",
-    "lib": "#/lib",
-    "hooks": "#/hooks"
+    "components": "@/ui",
+    "utils": "@/ui/utils",
+    "ui": "@/ui/shadcn",
+    "lib": "@/ui",
+    "hooks": "@/ui"
   },
   "registries": {
     "@beui": "https://beui.dev/r/{name}.json"

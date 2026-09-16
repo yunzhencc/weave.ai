@@ -13,10 +13,7 @@
 | `src/routes/` | TanStack 文件路由；[根布局](../src/routes/__root.tsx)组装主题和开发工具，[AI 路由](../src/routes/api.ai.$.ts)转发 HTTP 请求 |
 | `src/router.tsx` | 创建路由器并配置导航行为 |
 | `src/routeTree.gen.ts` | 自动生成的路由树，不手工维护 |
-| `src/components/ui/` | 基于 Base UI 的通用基础组件 |
-| `src/components/motion/` | 动效和主题切换组件 |
-| `src/components/agents/` | 通过 props 接收状态与回调的通用展示组件，不负责调用供应商 |
-| `src/lib/` | `cn`、动效参数等通用工具；通用 hooks 放在 `lib/hooks/` |
+| `src/ui/` | 跨领域 UI：`shadcn/` 放基于 Base UI 的基础组件，`motion/` 放动效，`ai/` 放只接收 props 的通用生成展示组件；`utils.ts` 与 UI hooks 就近放置 |
 | `src/models/` | [配置 DTO](../src/models/catalog.ts)、[初始化目录与媒体模板](../src/models/models.ts)、[请求解析和任务类型](../src/models/generation.ts)、领域错误 |
 | `src/models/ui/` | `/settings/models` 的渠道、模型和绑定管理界面 |
 | `src/models/server/` | 配置管理、加密凭据、候选发现与网络边界、文本适配器和事件流、fal 请求保护；`db/` 保存模型配置和任务 SQL |
@@ -66,8 +63,8 @@ routes/api.ai.$.ts
 ## 新代码放在哪里
 
 - **工作台业务 UI**：放入 `studio/ui/`，包括表单、请求 hooks、任务状态到展示状态的转换。
-- **通用展示组件**：继续放在 `components/`，只接收展示数据和回调；保留现有目录名称，不为对齐参考项目批量改名。
-- **业务纯逻辑**：放所属领域根目录；组件私有 hooks 和工具就近放置，只有真实跨业务复用时才放入 `lib/`。
+- **通用展示组件**：放入 `ui/`，只接收展示数据和回调；按职责放入 `shadcn/`、`motion/`、`ai/` 等目录。
+- **业务纯逻辑**：放所属领域根目录；组件私有 hooks 和工具就近放置，只有真实跨业务复用时才提取到 `ui/` 或对应领域。
 - **服务端业务**：放所属领域 `server/`。HTTP 鉴权与响应仍由入口层处理，SQL 收敛到 `server/db/`。
 - **服务端函数**：需要 TanStack Start RPC 时可以增加 `*.fn.ts`；现有 HTTP/SSE 接口有独立用途，不要求全量替换。新增入口应复用业务服务。
 

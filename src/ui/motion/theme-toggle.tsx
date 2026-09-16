@@ -6,9 +6,9 @@ import { Moon, Sun } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { useTheme } from 'next-themes';
 import { useEffect, useSyncExternalStore } from 'react';
-import { ActionSwapIcon } from '#/components/motion/action-swap.tsx';
-import { EASE_OUT_CSS } from '#/lib/ease.ts';
-import { cn } from '#/lib/utils.ts';
+import { ActionSwapIcon } from '@/ui/motion/action-swap.tsx';
+import { EASE_OUT_CSS } from '@/ui/motion/ease.ts';
+import { cn } from '@/ui/utils.ts';
 
 export type ThemeVariant = 'rectangle' | 'circle' | 'circle-blur' | 'blinds';
 

@@ -3,9 +3,6 @@
   "type": "module",
   "private": true,
   "packageManager": "pnpm@12.4.2",
-  "imports": {
-    "#/*": "./src/*"
-  },
   "engines": {
     "node": ">=24"
   },

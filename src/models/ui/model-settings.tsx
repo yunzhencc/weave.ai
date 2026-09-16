@@ -11,12 +11,12 @@ import type {
   Provider,
   ProviderInput,
   ProviderType,
-} from '#/models/catalog';
+} from '@/models/catalog';
 import { Link2, LoaderCircle, Plus, RefreshCw, Settings2, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '#/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
-import { Input } from '#/components/ui/input';
+import { Button } from '@/ui/shadcn/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/shadcn/card';
+import { Input } from '@/ui/shadcn/input';
 
 const fieldClass = 'grid gap-1.5 text-sm font-medium';
 const selectClass = 'h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';

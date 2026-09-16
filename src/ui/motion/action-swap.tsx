@@ -4,8 +4,8 @@ import type { HTMLMotionProps, Variants } from 'motion/react';
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
-import { EASE_OUT, SPRING_PRESS, SPRING_SWAP } from '#/lib/ease.ts';
-import { cn } from '#/lib/utils.ts';
+import { EASE_OUT, SPRING_PRESS, SPRING_SWAP } from '@/ui/motion/ease.ts';
+import { cn } from '@/ui/utils.ts';
 
 export interface ActionSwapItem {
   id: string;

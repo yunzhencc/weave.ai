@@ -5,9 +5,9 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Check, CircleAlert, RotateCcw } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef } from 'react';
-import { EASE_IN_OUT, EASE_OUT, SPRING_PRESS } from '#/lib/ease.ts';
-import { useHoverCapable } from '#/lib/hooks/use-hover-capable.ts';
-import { cn } from '#/lib/utils.ts';
+import { EASE_IN_OUT, EASE_OUT, SPRING_PRESS } from '@/ui/motion/ease.ts';
+import { useHoverCapable } from '@/ui/use-hover-capable.ts';
+import { cn } from '@/ui/utils.ts';
 
 export type ImageGenerationStatus
   = | 'queued'

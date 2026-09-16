@@ -1,13 +1,13 @@
-import type { GenerationRecord } from '#/models/generation';
+import type { GenerationRecord } from '@/models/generation';
 import { Popover } from '@base-ui/react/popover';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { ArrowUp, Check, ChevronDown, ExternalLink, ImageIcon, LoaderCircle, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { ImageGeneration } from '#/components/agents/image-generation';
-import { ThemeToggle } from '#/components/motion/theme-toggle';
-import { Button } from '#/components/ui/button';
+import { ImageGeneration } from '@/ui/ai/image-generation';
+import { ThemeToggle } from '@/ui/motion/theme-toggle';
+import { Button } from '@/ui/shadcn/button';
 import { listImageModels, readImage, submitImage } from '../image.fn';
 
 type ModelsResponse = Awaited<ReturnType<typeof listImageModels>>;
